@@ -1,21 +1,37 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { getAllLists } from "../../redux/listsRedux";
-import styles from "./Lists.module.scss";
 import { Link } from "react-router-dom";
+import styles from "./Lists.module.scss";
+import { usePouchLists } from "../../hooks/pouchHooks";
 import ListForm from "../ListForm/ListForm";
 
 const Lists = () => {
-  const lists = useSelector(getAllLists);
+  const lists = usePouchLists();
+
+  console.log('%c[Lists.js] lists received from hook:', 'color:yellow', lists);
+
+  if (!lists.length) {
+    return (
+      <section className={styles.lists}>
+        <h2 className={styles.heading}>Loading lists...</h2>
+      </section>
+    );
+  }
+
   return (
     <section className={styles.lists}>
       <h2 className={styles.heading}>Browse lists</h2>
-      {lists.map(list => (
-        <Link key={list.id} to={"/list" + list.id} className={styles.listLink}>
+
+      {lists.map((list) => (
+        <Link
+          key={list._id}
+          to={`/list/${list._id}`}   // ← bez encodeURIComponent
+          className={styles.listLink}
+        >
           <h3>{list.title}</h3>
-          <p>{list.description}</p>
+          {list.description ? <p>{list.description}</p> : null}
         </Link>
       ))}
+
       <ListForm />
     </section>
   );

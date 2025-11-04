@@ -1,33 +1,48 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Button from '../Button/Button';
 import TextInput from '../TextInput/TextInput';
-import { useDispatch } from 'react-redux';
-import React from "react";
 import styles from './ListForm.module.scss';
-import { addList } from '../../redux/listsRedux';
 
+// ⬇️ zamiast useDispatch i listsRedux używamy hooka z PouchDB
+import { usePouchActions } from '../../hooks/pouchHooks';
 
 const ListForm = () => {
-  const dispatch = useDispatch();
+  const { createList } = usePouchActions();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(addList({title, description}));
+    if (!title.trim()) return;
+
+    // zapis do bazy lokalnej (PouchDB)
+    createList({ title, description });
+
+    // czyszczenie pól formularza
     setTitle('');
     setDescription('');
-  }
+  };
 
   return (
     <form className={styles.listForm} onSubmit={handleSubmit}>
-      <TextInput placeholder="Title" className={styles.input} type="text" value={title} onChange={e => setTitle(e.target.value)} />
-      <TextInput placeholder="description" className={styles.input} type="text" value={description} onChange={e => setDescription(e.target.value)} />
+      <TextInput
+        placeholder="Title"
+        className={styles.input}
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <TextInput
+        placeholder="Description"
+        className={styles.input}
+        type="text"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
       <Button>Add list</Button>
     </form>
   );
 };
-
 
 export default ListForm;

@@ -3,43 +3,32 @@ import {
   legacy_createStore as createStore,
   combineReducers,
   applyMiddleware,
-  compose,
 } from 'redux';
 import { thunk } from 'redux-thunk';
 import { composeWithDevTools } from '@redux-devtools/extension';
 
-// Twoje istniejące importy:
 import initialState from './initialState';
 import listsReducer from './listsRedux';
 import columnsReducer from './columnsRedux';
 import cardsReducer from './cardsRedux';
 import searchStringReducer from './searchStringRedux';
+import pouchReducer from './pouchReducer';
 
-// (jeśli dodałeś wcześniej integrację z PouchDB)
-import pouchReducer from './pouchReducer'; // <- jeśli nie używasz, usuń ten import i wpis 'pouch' poniżej
-
-const subreducers = {
+const reducer = combineReducers({
+  // legacy (już nie używane przez UI po migracji)
   lists: listsReducer,
   columns: columnsReducer,
   cards: cardsReducer,
   searchString: searchStringReducer,
 
-  // jeśli używasz PouchDB reducera:
-  pouch: pouchReducer, // <- usuń, jeśli nie używasz
-};
+  // nowe, offline-first
+  pouch: pouchReducer,
+});
 
-const reducer = combineReducers(subreducers);
-
-// DevTools dla Redux 5
-const enhancer = composeWithDevTools(
-  applyMiddleware(thunk)
-);
-
-// Utworzenie store
 const store = createStore(
   reducer,
   initialState,
-  enhancer
+  composeWithDevTools(applyMiddleware(thunk))
 );
 
 export default store;

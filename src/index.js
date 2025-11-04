@@ -10,7 +10,7 @@ import './styles/global.scss';
 import 'font-awesome/css/font-awesome.min.css';
 
 store.dispatch(bootstrapPouch());
-
+console.log('%c[index.js] bootstrapPouch dispatched', 'color:lightgreen');
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
