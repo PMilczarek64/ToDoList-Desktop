@@ -1,35 +1,42 @@
+// src/components/Favorite/Favorite.js
 import React from "react";
 import PageTitle from "../PageTitle/PageTitle";
 import styles from './Favorite.module.scss';
 import Card from "../Card/Card";
-import { getFavoriteCards } from "../../redux/cardsRedux";
+
 import { useSelector } from "react-redux";
 
-const Favorite = () => {
+export default function Favorite() {
+  // Pobieramy WSZYSTKIE karty z PouchDB
+  const allCards = useSelector(state => state.pouch.cards);
 
-  const cards = useSelector(getFavoriteCards);
-
-  if (cards.length === 0) 
-    return ( 
-      <div>
-        <PageTitle>Favorite</PageTitle>
-        <p className={styles.subtitle}>No cards added...</p>
-      </div>
-    );
+  // Filtrowanie ulubionych
+  const favCards = allCards.filter(card => !!card.isFavorite);
 
   return (
     <div>
       <PageTitle>Favorite</PageTitle>
-      <div className={styles.wrapper}>
-        <div className={styles.column}>
-          <ul className={styles.cards}>
-            {cards.map(card => <Card key={card.id} id={card.id} title={card.title} />) }
-          </ul>
+
+      {favCards.length === 0 && (
+        <p className={styles.subtitle}>No cards added...</p>
+      )}
+
+      {favCards.length > 0 && (
+        <div className={styles.wrapper}>
+          <div className={styles.column}>
+            <ul className={styles.cards}>
+              {favCards.map(card => (
+                <Card
+                  key={card._id}
+                  id={card._id}
+                  title={card.title}
+                  isFavorite={card.isFavorite}   // ← bardzo ważne!
+                />
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>  
+      )}
     </div>
   );
-};
-
-
-export default Favorite;
+}

@@ -1,27 +1,34 @@
+// src/components/Column/Column.js
 import styles from './Column.module.scss';
-import Card from '../Card/Card';
 import CardForm from '../CardForm/Cardform';
-import { usePouchCards } from '../../hooks/pouchHooks';
+import Card from '../Card/Card';
+import { usePouchCards, usePouchActions } from '../../hooks/pouchHooks';
 
-const Column = ({ id: columnId, title, icon, listId }) => {
-  // Pobieramy karty tylko z tej kolumny
+const Column = ({ columnId, listId, title, icon }) => {
   const cards = usePouchCards({ listId, categoryId: columnId });
+  const { destroyCategory } = usePouchActions();
+
+  const handleDeleteColumn = () => {
+    console.log('[Column] delete category', { columnId });
+    destroyCategory(columnId);
+  };
 
   return (
     <article className={styles.column}>
       <h2 className={styles.title}>
-        <span className={`${styles.icon} fa fa-${icon}`}></span>
-        {title}
+        <span className={`fa fa-${icon} ${styles.icon}`} /> {title}
+        <button className={styles.removeBtn} title="Delete column" onClick={handleDeleteColumn}>
+          ✖
+        </button>
       </h2>
 
       <ul className={styles.cards}>
-        {cards.map((card) => (
-          <Card key={card._id} id={card._id} title={card.title} />
+        {cards.map(card => (
+          <Card key={card._id} id={card._id} title={card.title} isFavorite={card.isFavorite} />
         ))}
       </ul>
 
-      {/* ✅ przekazujemy oba ID, żeby CardForm wiedział, gdzie dodać kartę */}
-      <CardForm listId={listId} columnId={columnId} />
+      <CardForm columnId={columnId} listId={listId} />
     </article>
   );
 };

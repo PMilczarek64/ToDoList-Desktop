@@ -4,11 +4,20 @@ import { v4 as uuid } from 'uuid';
 const now = () => new Date().toISOString();
 
 /** =============== LISTS =============== */
-export async function createList({ title, icon = '' }) {
-  const doc = { _id: `${uuid()}`, type: 'list', title, icon, createdAt: now(), updatedAt: now() };
+export async function createList({ title, description = '', icon = '' }) {
+  const doc = {
+    _id: `${uuid()}`,          // zostaw taki format jak masz obecnie
+    type: 'list',
+    title,
+    description,               // ← DODANE
+    icon,
+    createdAt: now(),
+    updatedAt: now(),
+  };
   await db.put(doc);
   return doc;
 }
+
 export async function updateList(id, patch) {
   const cur = await db.get(id);
   const next = { ...cur, ...patch, updatedAt: now() };
@@ -50,6 +59,13 @@ export const editCategory = (id, patch) => async (dispatch, getState, { db }) =>
   dispatch({ type: 'pouch/upsertDoc', payload: updated });
   return updated;
 };
+
+export async function deleteCategory(id) {
+  const cards = (await db.find({ selector: { type: 'card', categoryId: id } })).docs;
+  for (const card of cards) await db.remove(card);
+  await db.remove(await db.get(id));
+}
+
 
 export async function listCategoriesByList(listId) {
   return (await db.find({ selector: { type: 'category', listId } })).docs;

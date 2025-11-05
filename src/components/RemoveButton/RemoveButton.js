@@ -1,19 +1,25 @@
-import React from "react";
-import { useDispatch } from "react-redux";
+import React from 'react';
 import styles from './RemoveButton.module.scss';
-import { removeCard } from "../../redux/cardsRedux";
+import { usePouchActions } from '../../hooks/pouchHooks';
 
-const RemoveButton = ({id}) => {
+const RemoveButton = ({ id }) => {
+  const { destroyCard } = usePouchActions();
 
-  const dispatch = useDispatch();
-
-    const handleClick = () => {
-      console.log(id);
-      dispatch(removeCard(id));
-    }
+  const handleClick = () => {
+    if (!id) return;
+    destroyCard(id); // Pouch → thunk removeCard → pouchRemoveDoc
+  };
 
   return (
-    <button className={styles.trash} onClick={() => handleClick()}><i className="fa fa-trash"></i></button>
+    <button
+      type="button"
+      className={styles.trash}
+      onClick={handleClick}
+      title="Delete"
+    >
+      <i className="fa fa-trash" />
+    </button>
   );
 };
+
 export default RemoveButton;

@@ -3,33 +3,31 @@ import { Link } from "react-router-dom";
 import styles from "./Lists.module.scss";
 import { usePouchLists } from "../../hooks/pouchHooks";
 import ListForm from "../ListForm/ListForm";
+import RemoveButton from "../RemoveButton/RemoveButton";
 
 const Lists = () => {
   const lists = usePouchLists();
 
   console.log('%c[Lists.js] lists received from hook:', 'color:yellow', lists);
 
-  if (!lists.length) {
-    return (
-      <section className={styles.lists}>
-        <h2 className={styles.heading}>Loading lists...</h2>
-      </section>
-    );
-  }
-
   return (
     <section className={styles.lists}>
-      <h2 className={styles.heading}>Browse lists</h2>
+      {(lists.length ?
+        <h2 className={styles.heading}>Browse lists</h2> :
+        <h2 className={styles.heading}>Fill in the fields to add a list...</h2>
+      )}
 
       {lists.map((list) => (
-        <Link
-          key={list._id}
-          to={`/list/${list._id}`}   // ← bez encodeURIComponent
-          className={styles.listLink}
-        >
-          <h3>{list.title}</h3>
-          {list.description ? <p>{list.description}</p> : null}
-        </Link>
+        <div className={styles.list} key={list._id}>
+          <Link
+            to={`/list/${list._id}`}   // ← bez encodeURIComponent
+            className={styles.listLink}
+          >
+            <h3>{list.title}</h3>
+            {list.description ? <p>{list.description}</p> : null}
+          </Link>
+          <RemoveButton id={list._id} />
+        </div>
       ))}
 
       <ListForm />

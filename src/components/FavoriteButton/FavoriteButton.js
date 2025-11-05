@@ -1,28 +1,27 @@
-import React, { useState } from "react";
+import React from 'react';
+import clsx from 'clsx';
 import styles from './FavoriteButton.module.scss';
-import clsx from "clsx";
-import { updateFavorite } from "../../redux/cardsRedux";
-import { useDispatch } from "react-redux";
+import { usePouchActions } from '../../hooks/pouchHooks';
 
-const FavoriteButton = ({id, ...props}) => {
-  const dispatch = useDispatch();
-  const [isFavorite, setFavorite] = useState(false);
-  console.log(isFavorite);
+const FavoriteButton = ({ id, isFavorite = false }) => {
+  const { toggleCardFavorite } = usePouchActions();
 
   const handleClick = () => {
-    if(isFavorite === false) {
-      setFavorite(true);
-    } else {
-      setFavorite(false);
-    }
-    console.log(isFavorite);
-    console.log(id);
-    dispatch(updateFavorite(id));
+    if (!id) return;
+    toggleCardFavorite(id); // Pouch → thunk toggleFavorite → pouchUpsertDoc
   };
 
   return (
-    <button className={clsx(styles.star, isFavorite && styles.isFavorite)} onClick={() => handleClick()}><i className="fa fa-star"></i></button>
-  )
-}
+    <button
+      type="button"
+      className={clsx(styles.star, isFavorite && styles.isFavorite)}
+      onClick={handleClick}
+      title={isFavorite ? 'Unfavorite' : 'Favorite'}
+      aria-pressed={isFavorite}
+    >
+      <i className="fa fa-star" />
+    </button>
+  );
+};
 
 export default FavoriteButton;

@@ -11,7 +11,8 @@ import {
 import {
   addList, removeList, editList,
   addCategory,        // create column
-  editCategory,       // update column
+  editCategory,
+  removeCategory,       // update column
   addCard, editCard, toggleFavorite, removeCard,
   searchCardsThunk,
 } from '../redux/pouchThunks';
@@ -55,40 +56,35 @@ export function usePouchColumns(listId) {
   return sorted;
 }
 
+
 // ====== CARDS ======
-export function usePouchCards({ listId, categoryId = null, q = '', favoritesOnly = false }) {
-  const selectCardsForList = useMemo(
-    () => selectPouchCardsByList(listId),
-    [listId]
-  );
+// src/hooks/pouchHooks.js (fragment: usePouchCards)
+export function usePouchCards({ listId, categoryId = null, q = undefined, favoritesOnly = false }) {
+  const selectCardsForList = useMemo(() => selectPouchCardsByList(listId), [listId]);
   const cardsAll = useSelector(selectCardsForList);
+
+  // 🔎 bierzemy globalny searchKey, jeśli q nie podane
+  const globalQ = useSelector(state => state?.searchString?.searchKey || '');
+  const effectiveQ = (typeof q === 'string') ? q : globalQ;
 
   const filtered = useMemo(() => {
     let out = [...cardsAll];
     if (categoryId) out = out.filter(c => c.categoryId === categoryId);
     if (favoritesOnly) out = out.filter(c => !!c.isFavorite);
-    if (q) {
-      const s = q.toLowerCase();
+    if (effectiveQ) {
+      const s = effectiveQ.toLowerCase();
       out = out.filter(c =>
         (c.title || '').toLowerCase().includes(s) ||
         (c.description || '').toLowerCase().includes(s)
       );
     }
-    const sorted = out.sort(
-      (a, b) => b.updatedAt?.localeCompare(a.updatedAt || '') || 0
-    );
-
-    console.log(
-      '%c[usePouchCards]',
-      'color:violet',
-      { listId, categoryId, total: cardsAll.length, filtered: sorted.length }
-    );
-
-    return sorted;
-  }, [cardsAll, categoryId, q, favoritesOnly]);
+    return out.sort((a, b) => b.updatedAt?.localeCompare(a.updatedAt || '') || 0);
+  }, [cardsAll, categoryId, favoritesOnly, effectiveQ]);
 
   return filtered;
 }
+
+
 
 // ====== SEARCH ======
 export function usePouchSearch({ listId, q = '', favoritesOnly = false, tags = [] }) {
@@ -124,6 +120,7 @@ export function usePouchActions() {
   const createColumn = (payload) => dispatch(addCategory(payload));      // create
   const updateColumn = (id, patch) => dispatch(editCategory(id, patch)); // update
   const createCategory = (payload) => dispatch(addCategory(payload));    // alias
+  const destroyCategory = (id) => dispatch(removeCategory(id));
 
   // ====== CARDS ======
   // w usePouchActions()
@@ -149,7 +146,7 @@ const createCard = (payload) => {
     // lists
     createList, updateList, destroyList,
     // columns
-    createColumn, updateColumn, createCategory,
+    createColumn, updateColumn, createCategory, destroyCategory,
     // cards
     createCard, updateCard, toggleCardFavorite, destroyCard,
   };

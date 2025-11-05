@@ -1,29 +1,21 @@
-import { strContains } from '../utils/strContains';
+// src/redux/searchStringRedux.js
+const UPDATE = 'app/searchString/UPDATE';
 
-//selectors
-export const getFilteredCards = (state) => {
-  const cards = state?.cards ?? [];
-  const searchKey = state?.searchString?.searchKey?.toLowerCase?.() ?? '';
-  
-  return cards.filter(card =>
-    card.title?.toLowerCase().includes(searchKey)
-  );
-};
+export const updateSearchstring = ({ searchKey = '' } = {}) => ({
+  type: UPDATE,
+  payload: { searchKey },
+});
 
-//action
-const createActionName = actionName => `app/filteredCards/${actionName}`;
-const UPDATE_SEARCHSTRING = createActionName('UPDATE_SEARCHSTRING');
+const initialState = { searchKey: '' };
 
-//action creators
-export const updateSearchstring = payload => ({ type: UPDATE_SEARCHSTRING, payload });
-
-const searchStringReducer = (statePart = '', action) => {
-  switch(action.type) {
-    case UPDATE_SEARCHSTRING:
-      return action.payload
+export default function searchStringReducer(state = initialState, action = {}) {
+  switch (action.type) {
+    case UPDATE:
+      return { ...state, searchKey: action.payload?.searchKey ?? '' };
     default:
-      return statePart;
-  };
-};
+      return state;
+  }
+}
 
-export default searchStringReducer;
+// (opcjonalnie) selektor
+export const selectSearchKey = (state) => state?.searchString?.searchKey || '';

@@ -55,6 +55,23 @@ export const editCategory = (id, patch) => async () => {
   await repo.editCategory(id, patch);
 };
 
+export const removeCategory = (id) => async (dispatch) => {
+  try {
+    const cards = (await db.find({ selector: { type: 'card', categoryId: id } })).docs;
+    await Promise.resolve(); // (opcjonalnie) nic, tylko żeby złapać błąd w try/catch
+
+    // natychmiast usuń ze store (UI zniknie od razu)
+    dispatch(pouchRemoveDoc({ _id: id, type: 'category' }));
+    cards.forEach(c => dispatch(pouchRemoveDoc({ _id: c._id, type: 'card' })));
+
+    // usuń fizycznie w bazie
+    await repo.deleteCategory(id);
+  } catch (e) {
+    console.error('[removeCategory] failed:', e);
+  }
+};
+
+
 /**
  * 🗂️ CARDS
  */
@@ -73,8 +90,19 @@ export const toggleFavorite = (id) => async () => {
   await repo.toggleFavoriteCard(id);
 };
 
-export const removeCard = (id) => async () => {
-  await repo.deleteCard(id);
+export const removeCard = (id) => async (dispatch) => {
+  try {
+    // 1) pobierz doc (żeby znać type i _rev)
+    const doc = await db.get(id);           // { _id, _rev, type: 'card', ... }
+
+    // 2) usuń z bazy
+    await repo.deleteCard(id);
+
+    // 3) usuń NATYCHMIAST ze store
+    dispatch(pouchRemoveDoc({ _id: doc._id, type: doc.type }));
+  } catch (e) {
+    console.error('[removeCard] failed:', e);
+  }
 };
 
 /**

@@ -5,22 +5,21 @@
   flex-shrink: 0;
   width: calc(33% - 12px);
   background: $color-light;
-  margin: 0 $base-size $base-size 0;
+  margin: 5;
   padding: ($base-size * 1.5);
   border-radius: $radius;
   box-shadow: 0 math.div($base-size, 4) 0 rgba(0,0,0,0.3);
   color: $color-dark;
-
-  &:last-child {
-    margin: 0 0 $base-size 0;
-  }
+  
 }
 
 .title {
+  position: relative;
   text-align: center;
   font-size: ($base-size * 1.5);
   margin: 0 0 ($base-size * 1.5) 0;
 }
+
 
 .icon::before {
   padding-right: $base-size;
@@ -39,5 +38,19 @@
   .column {
     width: 100%;
     margin: 0 0 $base-size 0;
+  }
+}
+
+.removeBtn {
+  background: transparent;
+  border: none;
+  color: $color-dark;
+  font-size: ($base-size * 1.4);
+  cursor: pointer;
+  float: right;
+  margin-left: $base-size;
+
+  &:hover {
+    color: red;
   }
 }
