@@ -3,7 +3,12 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import styles from './List.module.scss';
 
 // Nowe hooki PouchDB
-import { usePouchLists, usePouchCards, usePouchActions } from '../../hooks/pouchHooks';
+import {
+  usePouchLists,
+  usePouchColumns,
+  usePouchCards,
+  usePouchActions,
+} from '../../hooks/pouchHooks';
 
 // Komponenty wizualne – te same, które już masz
 import Column from '../Column/Column';
@@ -12,11 +17,19 @@ import SearchForm from '../SearchFrom/SearchFrom';
 
 const List = () => {
   const { id } = useParams();
-  const lists = usePouchLists();
-  const list = lists.find(l => l._id === id);
 
-  const { createCard, updateCard, destroyCard, toggleCardFavorite } = usePouchActions();
+  // 🧩 Pobieramy dane z PouchDB
+  const lists = usePouchLists();
+  const list = lists.find((l) => l._id === id);
+  const columns = usePouchColumns(list?._id);
   const cards = usePouchCards({ listId: list?._id });
+
+  const {
+    createCard,
+    updateCard,
+    destroyCard,
+    toggleCardFavorite,
+  } = usePouchActions();
 
   // 💡 jeśli lista nie istnieje — wróć na stronę główną
   if (!list) return <Navigate to="/" />;
@@ -32,42 +45,89 @@ const List = () => {
 
       <SearchForm />
 
-      {/* 🔹 kolumny / karty */}
+      {/* 🔹 Kolumny */}
       <div className={styles.columnsWrapper}>
         <div className={styles.columns}>
-          {cards.map(card => (
-            <Column key={card._id}>
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <strong>{card.title}</strong>
-                  <div className={styles.cardActions}>
-                    <button onClick={() => toggleCardFavorite(card._id)}>
-                      {card.isFavorite ? '⭐' : '☆'}
-                    </button>
-                    <button onClick={() => updateCard(card._id, { title: card.title + ' ✏️' })}>
-                      Edit
-                    </button>
-                    <button onClick={() => destroyCard(card._id)}>
-                      Delete
-                    </button>
+          {columns.map((column) => (
+            <Column
+              key={column._id}
+              title={column.title}
+              icon={column.icon}
+              columnId={column._id}    // ← tu!
+              listId={list._id}        // ← i tu!
+            >
+              {/* 🔸 Karty należące do tej kolumny */}
+              {cards
+                .filter((card) => card.categoryId === column._id)
+                .map((card) => (
+                  <div key={card._id} className={styles.card}>
+                    <div className={styles.cardHeader}>
+                      <strong>{card.title}</strong>
+                      <div className={styles.cardActions}>
+                        <button onClick={() => toggleCardFavorite(card._id)}>
+                          {card.isFavorite ? '⭐' : '☆'}
+                        </button>
+                        <button
+                          onClick={() =>
+                            updateCard(card._id, {
+                              title: card.title + ' ✏️',
+                            })
+                          }
+                        >
+                          Edit
+                        </button>
+                        <button onClick={() => destroyCard(card._id)}>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    {card.description && (
+                      <p className={styles.cardDesc}>{card.description}</p>
+                    )}
                   </div>
-                </div>
-                {card.description && (
-                  <p className={styles.cardDesc}>{card.description}</p>
-                )}
-              </div>
+                ))}
+
+              {/* 🔸 Formularz dodania karty do danej kolumny */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;                 // ← zawsze formularz
+                  const fd = new FormData(form);
+                  const title = (fd.get('title') || '').toString().trim();
+                  if (!title) return;
+
+                  createCard({
+                    listId: list._id,
+                    categoryId: column._id,                     // ← KLUCZOWE
+                    title,
+                    createdAt: new Date().toISOString(),
+                    type: 'card',
+                  });
+
+                  form.reset();
+                }}
+                className={styles.cardForm}
+              >
+                <input
+                  type="text"
+                  name="title"                                  // ← musi mieć name
+                  placeholder="New card title..."
+                  className={styles.input}
+                />
+                <button type="submit" className={styles.addButton}>+ Add card</button>
+              </form>
+
+
             </Column>
           ))}
 
-          {/* Formularz dodawania kolumny / karty */}
-          <ColumnForm
-            onAdd={(title) => createCard({ listId: list._id, title })}
-          />
+          {/* 🔹 Formularz dodawania nowej kolumny */}
+          <ColumnForm listId={list._id} />
         </div>
       </div>
 
-      {cards.length === 0 && (
-        <p className={styles.empty}>No cards yet.</p>
+      {columns.length === 0 && (
+        <p className={styles.empty}>No columns yet.</p>
       )}
 
       <footer className={styles.footer}>

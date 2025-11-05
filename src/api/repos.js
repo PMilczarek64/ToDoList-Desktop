@@ -29,22 +29,39 @@ export async function listLists() {
 }
 
 /** ============ CATEGORIES ============ */
-export async function createCategory({ listId, title }) {
-  const doc = { _id: `category:${uuid()}`, type: 'category', listId, title, createdAt: now(), updatedAt: now() };
+export async function createCategory({ listId, title, icon = '' }) {
+  const doc = {
+    _id: `category:${uuid()}`,
+    type: 'category',
+    listId,
+    title,
+    icon,               
+    createdAt: now(),
+    updatedAt: now(),
+  };
   await db.put(doc);
-  return doc;
-}
+  return doc;            
+};
+
+export const editCategory = (id, patch) => async (dispatch, getState, { db }) => {
+  const current = await db.get(id);
+  const updated = { ...current, ...patch, updatedAt: now() };
+  await db.put(updated);
+  dispatch({ type: 'pouch/upsertDoc', payload: updated });
+  return updated;
+};
+
 export async function listCategoriesByList(listId) {
   return (await db.find({ selector: { type: 'category', listId } })).docs;
 }
 
 /** ================ CARDS ================ */
-export async function createCard({ listId, categoryId = null, title, description = '', tags = [] }) {
+export async function createCard({ listId, categoryId, title, description = '', tags = [] }) {
   const doc = {
     _id: `card:${uuid()}`,
     type: 'card',
     listId,
-    categoryId,
+    categoryId,                           // 👈 musi zostać zapisane
     title,
     description,
     tags,

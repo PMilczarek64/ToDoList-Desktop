@@ -1,4 +1,4 @@
-import shortid from "shortid";
+ /* import shortid from "shortid";
 
 //selectors
 export const getFavoriteCards = state => state.cards.filter(card => card.isFavorite === true);
@@ -28,3 +28,5 @@ const cardsReducer = (statePart = [], action) => {
 };
 
 export default cardsReducer;
+
+*/

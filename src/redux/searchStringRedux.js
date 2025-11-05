@@ -1,8 +1,14 @@
 import { strContains } from '../utils/strContains';
 
 //selectors
-export const getFilteredCards = ({ cards, searchString }, columnId) => cards
-  .filter(card => card.columnId === columnId && strContains(card.title, searchString.searchKey));
+export const getFilteredCards = (state) => {
+  const cards = state?.cards ?? [];
+  const searchKey = state?.searchString?.searchKey?.toLowerCase?.() ?? '';
+  
+  return cards.filter(card =>
+    card.title?.toLowerCase().includes(searchKey)
+  );
+};
 
 //action
 const createActionName = actionName => `app/filteredCards/${actionName}`;
